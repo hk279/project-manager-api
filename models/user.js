@@ -3,7 +3,7 @@ const uniqueValidator = require("mongoose-unique-validator");
 
 // Schema with validation rules.
 const userSchema = new mongoose.Schema({
-    name: {
+    email: {
         type: String,
         minlength: 5,
         required: true,

@@ -23,10 +23,23 @@ app.post("/auth/login", (req, res) => {
         });
 });
 
-// Get a project by id
-app.get("/api/projects/:id", (req, res) => {
-    Project.findOne({ id: req.params.id })
+// Get all projects from a given organization
+app.get("/api/projects/org/:organization", (req, res) => {
+    Project.find({ organization: req.params.organization })
         .then((data) => res.send(data))
+        .catch((err) => {
+            console.log(err);
+            res.status(500).send();
+        });
+});
+
+// Get a project by id
+app.get("/api/projects/id/:id", (req, res) => {
+    Project.findById(req.params.id)
+        .then((data) => {
+            console.log(data);
+            res.send(data);
+        })
         .catch((err) => {
             console.log(err);
             res.status(500).send();
@@ -36,6 +49,16 @@ app.get("/api/projects/:id", (req, res) => {
 // Create a new project
 app.post("/api/projects", (req, res) => {
     Project.create({ ...req.body })
+        .then((data) => res.send(data))
+        .catch((err) => {
+            console.log(err);
+            res.status(500).send();
+        });
+});
+
+// Edit a project
+app.put("/api/projects", (req, res) => {
+    Project.findByIdAndUpdate(req.body.id, { ...req.body })
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);
@@ -73,6 +96,21 @@ app.post("/api/employees", async (req, res) => {
             console.log(err);
             res.status(500).send();
         });
+});
+
+// Get employee objects for IDs given in the request body
+app.post("/api/employeeGroup", async (req, res) => {
+    const employeeIdsArray = req.body.group;
+    const allRequests = [];
+
+    employeeIdsArray.forEach((id) => {
+        allRequests.push(Employee.findById(id));
+    });
+
+    Promise.all(allRequests).then((data) => {
+        console.log(data);
+        res.send(data);
+    });
 });
 
 const port = 3001;

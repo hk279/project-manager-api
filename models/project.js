@@ -26,6 +26,10 @@ const projectSchema = new mongoose.Schema({
         type: Array,
         required: false,
     },
+    tasks: {
+        type: Array,
+        required: true,
+    },
 });
 
 // Format the returned data. Remove _id-object and return a string id instead. Also remove the MongoDB version.
