@@ -3,6 +3,8 @@ const User = require("./models/user");
 const Project = require("./models/project");
 const Employee = require("./models/employee");
 
+const helper = require("./utils/helperFunctions");
+
 const cors = require("cors");
 const express = require("express");
 const app = express();
@@ -14,7 +16,6 @@ app.use(express.json());
 app.post("/auth/login", (req, res) => {
     User.findOne({ email: req.body.email, password: req.body.password })
         .then((data) => {
-            console.log(data);
             res.send(data);
         })
         .catch((err) => {
@@ -37,7 +38,6 @@ app.get("/api/projects/org/:organization", (req, res) => {
 app.get("/api/projects/id/:id", (req, res) => {
     Project.findById(req.params.id)
         .then((data) => {
-            console.log(data);
             res.send(data);
         })
         .catch((err) => {
@@ -58,7 +58,10 @@ app.post("/api/projects", (req, res) => {
 
 // Edit a project
 app.put("/api/projects", (req, res) => {
-    Project.findByIdAndUpdate(req.body.id, { ...req.body })
+    // Creates a new object with tasks sorted descending alphabetically (Not started, Doing, Completed).
+    const updatedData = { ...req.body, tasks: helper.sortTasksByStatus(req.body.tasks) };
+
+    Project.findByIdAndUpdate(req.body.id, updatedData)
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);
@@ -108,7 +111,6 @@ app.post("/api/employeeGroup", async (req, res) => {
     });
 
     Promise.all(allRequests).then((data) => {
-        console.log(data);
         res.send(data);
     });
 });
