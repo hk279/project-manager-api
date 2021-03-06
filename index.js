@@ -69,6 +69,16 @@ app.put("/api/projects", (req, res) => {
         });
 });
 
+// Delete a project by id
+app.delete("/api/projects/id/:id", (req, res) => {
+    Project.findByIdAndDelete(req.params.id)
+        .then(() => res.status(204).end())
+        .catch((err) => {
+            console.log(err);
+            res.status(204).end();
+        });
+});
+
 // Get all employees from a given organization
 app.get("/api/employees/:organization", async (req, res) => {
     Employee.find({ organization: req.params.organization })
