@@ -125,5 +125,15 @@ app.post("/api/employeeGroup", async (req, res) => {
     });
 });
 
+// Delete an employee by id
+app.delete("/api/employees/:id", (req, res) => {
+    Employee.findByIdAndDelete(req.params.id)
+        .then(() => res.status(204).end())
+        .catch((err) => {
+            console.log(err);
+            res.status(204).end();
+        });
+});
+
 const port = 3001;
 app.listen(port, () => console.log("App listening in port " + port));
