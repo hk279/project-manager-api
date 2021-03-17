@@ -24,7 +24,7 @@ const projectSchema = new mongoose.Schema({
     },
     team: {
         type: Array,
-        required: false,
+        required: true,
     },
     tasks: {
         type: Array,

@@ -80,7 +80,7 @@ app.delete("/api/projects/id/:id", (req, res) => {
 });
 
 // Get all employees from a given organization
-app.get("/api/employees/:organization", async (req, res) => {
+app.get("/api/employees/org/:organization", async (req, res) => {
     Employee.find({ organization: req.params.organization })
         .then((data) => {
             res.send(data);
@@ -92,8 +92,8 @@ app.get("/api/employees/:organization", async (req, res) => {
 });
 
 // Get an employee by id
-app.get("/api/employees/:id", async (req, res) => {
-    Employee.findOne({ id: req.params.id })
+app.get("/api/employees/id/:id", async (req, res) => {
+    Employee.findById(req.params.id)
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);
@@ -123,6 +123,16 @@ app.post("/api/employeeGroup", async (req, res) => {
     Promise.all(allRequests).then((data) => {
         res.send(data);
     });
+});
+
+// Edit an employee
+app.put("/api/employees", (req, res) => {
+    Employee.findByIdAndUpdate(req.body.id, req.body)
+        .then((data) => res.send(data))
+        .catch((err) => {
+            console.log(err);
+            res.status(500).send();
+        });
 });
 
 // Delete an employee by id
