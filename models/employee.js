@@ -19,7 +19,7 @@ const employeeSchema = new mongoose.Schema({
         required: true,
     },
     skills: {
-        type: Array,
+        type: [String],
         required: false,
     },
 });

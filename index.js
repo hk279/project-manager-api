@@ -136,13 +136,29 @@ app.put("/api/employees", (req, res) => {
 });
 
 // Delete an employee by id
-app.delete("/api/employees/:id", (req, res) => {
-    Employee.findByIdAndDelete(req.params.id)
-        .then(() => res.status(204).end())
-        .catch((err) => {
-            console.log(err);
-            res.status(204).end();
+app.delete("/api/employees/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+        await Employee.findByIdAndDelete(id);
+        /* Gets the projects where the deleted employee was involved in */
+        const affectedProjects = await Project.find({ team: id });
+
+        /* Updates all affected projects, so that the employee is removed from it's team and tasks */
+
+        affectedProjects.forEach((project) => {
+            const updatedProject = helper.removeEmployeeFromProject(id, project);
+
+            // Can't explain why this needs $set and .exec() while other findByIdAndUpdate() calls don't
+            Project.findByIdAndUpdate(project.id, {
+                $set: { team: updatedProject.team, tasks: updatedProject.tasks },
+            }).exec();
         });
+
+        res.status(204).end();
+    } catch (err) {
+        console.log(err);
+        res.status(204).end();
+    }
 });
 
 const port = 3001;

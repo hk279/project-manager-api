@@ -23,7 +23,7 @@ const projectSchema = new mongoose.Schema({
         required: true,
     },
     team: {
-        type: Array,
+        type: [String],
         required: true,
     },
     tasks: {
