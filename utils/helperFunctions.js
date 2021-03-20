@@ -27,7 +27,22 @@ const removeEmployeeFromProject = (employeeId, project) => {
     return updatedProject;
 };
 
+const removeInvalidEmployeesFromTasks = (project) => {
+    const updatedTasks = project.tasks.map((task) => {
+        let newTeam;
+        task.team.forEach((taskMember) => {
+            if (!project.team.includes(taskMember)) {
+                newTeam = task.team.filter((member) => member !== taskMember);
+            }
+        });
+        return { ...task, taskTeam: newTeam };
+    });
+
+    return { ...project, tasks: updatedTasks };
+};
+
 module.exports = {
     sortTasksByStatus,
     removeEmployeeFromProject,
+    removeInvalidEmployeesFromTasks,
 };

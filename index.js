@@ -126,8 +126,12 @@ app.post("/api/employeeGroup", async (req, res) => {
 });
 
 // Edit an employee
-app.put("/api/employees", (req, res) => {
-    Employee.findByIdAndUpdate(req.body.id, req.body)
+app.put("/api/employees", async (req, res) => {
+    /* If employees have been removed from the project when editing, helper function removes all those employees from task teams as well. */
+    const formattedData = helper.removeInvalidEmployeesFromTasks(req.body);
+    console.log(formattedData);
+
+    Employee.findByIdAndUpdate(req.body.id, formattedData)
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);
