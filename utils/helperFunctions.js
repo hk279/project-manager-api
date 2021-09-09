@@ -30,9 +30,9 @@ const removeEmployeeFromProject = (employeeId, project) => {
 const removeInvalidEmployeesFromTasks = (project) => {
     const updatedTasks = project.tasks.map((task) => {
         let newTeam;
-        task.team.forEach((taskMember) => {
+        task.taskTeam.forEach((taskMember) => {
             if (!project.team.includes(taskMember)) {
-                newTeam = task.team.filter((member) => member !== taskMember);
+                newTeam = task.taskTeam.filter((member) => member !== taskMember);
             }
         });
         return { ...task, taskTeam: newTeam };

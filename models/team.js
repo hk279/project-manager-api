@@ -1,30 +1,27 @@
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 
-const employeeSchema = new mongoose.Schema({
-    firstName: {
+const teamSchema = new mongoose.Schema({
+    name: {
         type: String,
+        minlength: 3,
         required: true,
+        unique: true,
     },
-    lastName: {
-        type: String,
+    members: {
+        type: Array,
         required: true,
     },
     organization: {
         type: String,
         required: true,
     },
-    department: {
-        type: String,
-        required: true,
-    },
-    skills: {
-        type: [String],
-        required: false,
-    },
 });
 
+teamSchema.plugin(uniqueValidator);
+
 // Format the returned data. Remove _id-object and return a string id instead. Also remove the MongoDB version.
-employeeSchema.set("toJSON", {
+userSchema.set("toJSON", {
     transform: (document, returnedObject) => {
         returnedObject.id = returnedObject._id.toString();
         delete returnedObject._id;
@@ -32,4 +29,4 @@ employeeSchema.set("toJSON", {
     },
 });
 
-module.exports = mongoose.model("Employee", employeeSchema);
+module.exports = mongoose.model("Team", teamSchema);

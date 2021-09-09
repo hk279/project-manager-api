@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// Schema with validation rules.
 const projectSchema = new mongoose.Schema({
     title: {
         type: String,
