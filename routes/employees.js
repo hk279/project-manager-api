@@ -50,9 +50,9 @@ employeesRouter.post("/", async (req, res) => {
         });
 });
 
-// Edit an employee
-employeesRouter.put("/", async (req, res) => {
-    Employee.findByIdAndUpdate(req.body.id, req.body)
+// Update an employee
+employeesRouter.put("/:id", async (req, res) => {
+    Employee.findByIdAndUpdate(req.params.id, req.body)
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);

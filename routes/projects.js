@@ -37,14 +37,14 @@ projectsRouter.post("/", (req, res) => {
 });
 
 // Edit a project
-projectsRouter.put("/", (req, res) => {
+projectsRouter.put("/:id", (req, res) => {
     /* If employees have been removed from the project when editing, helper function removes all those employees from task teams as well. */
     let formattedData = helper.removeInvalidEmployeesFromTasks(req.body);
 
     // Creates a new object with tasks sorted descending alphabetically (Not started, Doing, Completed).
     formattedData = { ...formattedData, tasks: helper.sortTasksByStatus(req.body.tasks) };
 
-    Project.findByIdAndUpdate(req.body.id, formattedData)
+    Project.findByIdAndUpdate(req.params.id, formattedData)
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);
