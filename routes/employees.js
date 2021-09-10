@@ -5,8 +5,8 @@ const Employee = require("../models/employee");
 const employeesRouter = express.Router();
 
 // Get all employees from a given organization
-employeesRouter.get("/org/:organization", async (req, res) => {
-    Employee.find({ organization: req.params.organization })
+employeesRouter.get("/org/:organizationId", async (req, res) => {
+    Employee.find({ organizationId: req.params.organizationId })
         .then((data) => {
             res.send(data);
         })

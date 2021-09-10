@@ -12,7 +12,7 @@ const teamSchema = new mongoose.Schema({
         type: Array,
         required: true,
     },
-    organization: {
+    organizationId: {
         type: String,
         required: true,
     },

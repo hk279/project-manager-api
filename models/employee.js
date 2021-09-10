@@ -9,7 +9,7 @@ const employeeSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    organization: {
+    organizationId: {
         type: String,
         required: true,
     },

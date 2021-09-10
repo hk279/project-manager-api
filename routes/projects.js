@@ -5,8 +5,8 @@ const Project = require("../models/project");
 const projectsRouter = express.Router();
 
 // Get all projects from a given organization
-projectsRouter.get("/org/:organization", (req, res) => {
-    Project.find({ organization: req.params.organization })
+projectsRouter.get("/org/:organizationId", (req, res) => {
+    Project.find({ organizationId: req.params.organizationId })
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);
