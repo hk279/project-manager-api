@@ -41,7 +41,7 @@ projectsRouter.put("/:id", (req, res) => {
     /* If employees have been removed from the project when editing, helper function removes all those employees from task teams as well. */
     let formattedData = helper.removeInvalidEmployeesFromTasks(req.body);
 
-    // Creates a new object with tasks sorted descending alphabetically (Not started, Doing, Completed).
+    // Creates a new object with tasks sorted by status (Not started, Doing, Completed).
     formattedData = { ...formattedData, tasks: helper.sortTasksByStatus(req.body.tasks) };
 
     Project.findByIdAndUpdate(req.params.id, formattedData)
@@ -59,6 +59,24 @@ projectsRouter.delete("/:id", (req, res) => {
         .catch((err) => {
             console.log(err);
             res.status(204).end();
+        });
+});
+
+// Get all project tags from a given organization
+projectsRouter.get("/tags/:organizationId", (req, res) => {
+    Project.find({ organizationId: req.params.organizationId })
+        .then((data) => {
+            let tags = [];
+            data.forEach((project) => {
+                project.tags.forEach((tag) => {
+                    tags.push(tag);
+                });
+            });
+            res.send(tags);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).send();
         });
 });
 

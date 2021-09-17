@@ -21,6 +21,10 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    tags: {
+        type: [String],
+        required: true,
+    },
     team: {
         type: [String],
         required: true,
