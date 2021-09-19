@@ -1,4 +1,5 @@
-var express = require("express");
+const express = require("express");
+const multer = require("multer");
 
 const helper = require("../utils/helperFunctions");
 const Project = require("../models/project");
@@ -79,5 +80,50 @@ projectsRouter.get("/tags/:organizationId", (req, res) => {
             res.status(500).send();
         });
 });
+
+// Uploading file attachments to a project
+
+const fs = require("fs");
+const util = require("util");
+const unlinkFile = util.promisify(fs.unlink);
+const upload = multer({ dest: "uploads/" });
+const { uploadFile, getFile } = require("../s3");
+
+projectsRouter.post("/upload-file/:projectId", upload.single("file"), (req, res) => {
+    // Add the key of the updated file to the project in DB.
+    Project.findByIdAndUpdate(req.params.projectId, {
+        $push: { files: { fileKey: req.file.filename, fileName: req.file.originalname } },
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).send();
+    });
+
+    // Upload file to s3 bucket.
+    uploadFile(req.file)
+        .then((result) => {
+            unlinkFile(req.file.path);
+            res.send({ filePath: `/projects/get-file/${result.Key}` });
+        })
+        .catch((err) => {
+            // If uploading to the bucket fails, roll back the DB update.
+            Project.findByIdAndUpdate(req.params.projectId, { $pull: { files: req.file.filename } })
+                .then((data) => res.send(data))
+                .catch((err) => {
+                    console.log(err);
+                });
+
+            console.log(err);
+            res.status(500).send();
+        });
+});
+
+// Getting an attachment file from s3 bucket
+projectsRouter.get("/get-file/:fileKey", (req, res) => {
+    const readStream = getFile(req.params.fileKey);
+    readStream.pipe(res);
+});
+
+// TODO: Delete an attachment file from  DB and s3 bucket
+projectsRouter.put("/delete-file/:fileKey", (req, res) => {});
 
 module.exports = projectsRouter;

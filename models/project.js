@@ -29,6 +29,10 @@ const projectSchema = new mongoose.Schema({
         type: [String],
         required: true,
     },
+    files: {
+        type: Array,
+        required: true,
+    },
     tasks: {
         type: Array,
         required: true,
