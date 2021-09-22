@@ -2,6 +2,19 @@ const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
 
 const userSchema = new mongoose.Schema({
+    firstName: {
+        type: String,
+        required: true,
+    },
+    lastName: {
+        type: String,
+        required: true,
+    },
+    // Admin or normal
+    userType: {
+        type: String,
+        required: true,
+    },
     email: {
         type: String,
         minlength: 5,

@@ -8,6 +8,10 @@ const organizationSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    type: {
+        type: String,
+        required: true,
+    },
 });
 
 organizationSchema.plugin(uniqueValidator);

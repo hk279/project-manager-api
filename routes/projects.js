@@ -87,9 +87,9 @@ const fs = require("fs");
 const util = require("util");
 const unlinkFile = util.promisify(fs.unlink);
 const upload = multer({ dest: "uploads/" });
-const { uploadFile, getFile } = require("../s3");
+const { uploadFile, getFile, deleteFile } = require("../s3");
 
-projectsRouter.post("/upload-file/:projectId", upload.single("file"), (req, res) => {
+projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res) => {
     // Add the key of the updated file to the project in DB.
     Project.findByIdAndUpdate(req.params.projectId, {
         $push: { files: { fileKey: req.file.filename, fileName: req.file.originalname } },
@@ -102,18 +102,19 @@ projectsRouter.post("/upload-file/:projectId", upload.single("file"), (req, res)
     uploadFile(req.file)
         .then((result) => {
             unlinkFile(req.file.path);
-            res.send({ filePath: `/projects/get-file/${result.Key}` });
+            res.send({ filePath: `/projects/get-file/${result.Key}`, fileKey: result.Key });
         })
         .catch((err) => {
             // If uploading to the bucket fails, roll back the DB update.
-            Project.findByIdAndUpdate(req.params.projectId, { $pull: { files: req.file.filename } })
-                .then((data) => res.send(data))
-                .catch((err) => {
+            Project.findByIdAndUpdate(req.params.projectId, { $pull: { files: { fileKey: req.file.filename } } }).catch(
+                (err) => {
+                    res.status(500).send("Rollback failed");
                     console.log(err);
-                });
+                }
+            );
 
             console.log(err);
-            res.status(500).send();
+            res.status(500).send("File upload failed");
         });
 });
 
@@ -123,7 +124,21 @@ projectsRouter.get("/get-file/:fileKey", (req, res) => {
     readStream.pipe(res);
 });
 
-// TODO: Delete an attachment file from  DB and s3 bucket
-projectsRouter.put("/delete-file/:fileKey", (req, res) => {});
+// Delete an attachment file from  DB and s3 bucket
+projectsRouter.put("/:projectId/delete-file/:fileKey", (req, res) => {
+    deleteFile(req.params.fileKey)
+        .then(() => {
+            Project.findByIdAndUpdate(req.params.projectId, { $pull: { files: { fileKey: req.params.fileKey } } })
+                .then(() => res.status(204).end())
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).end();
+                });
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).end();
+        });
+});
 
 module.exports = projectsRouter;

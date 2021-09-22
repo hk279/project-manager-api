@@ -29,10 +29,17 @@ const getFile = (fileKey) => {
     return s3.getObject(downloadParams).createReadStream();
 };
 
-//TODO
-const deleteFile = (fileKey) => {};
+const deleteFile = (fileKey) => {
+    const deleteParams = {
+        Key: fileKey,
+        Bucket: process.env.AWS_BUCKET_NAME,
+    };
+
+    return s3.deleteObject(deleteParams).promise();
+};
 
 module.exports = {
     uploadFile,
     getFile,
+    deleteFile,
 };
