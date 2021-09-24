@@ -10,11 +10,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // Admin or normal
-    userType: {
-        type: String,
-        required: true,
-    },
     email: {
         type: String,
         minlength: 5,
@@ -25,9 +20,18 @@ const userSchema = new mongoose.Schema({
         type: String,
         minlength: 5,
         required: true,
-        unique: true,
     },
     organizationId: {
+        type: String,
+        required: true,
+    },
+    // Admin or normal
+    userType: {
+        type: String,
+        required: true,
+    },
+    // Private or organization
+    userOrganizationType: {
         type: String,
         required: true,
     },

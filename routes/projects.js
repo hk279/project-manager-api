@@ -29,7 +29,7 @@ projectsRouter.get("/id/:id", (req, res) => {
 
 // Create a new project
 projectsRouter.post("/", (req, res) => {
-    Project.create({ ...req.body })
+    Project.create(req.body)
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);
@@ -95,7 +95,7 @@ projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res)
         $push: { files: { fileKey: req.file.filename, fileName: req.file.originalname } },
     }).catch((err) => {
         console.log(err);
-        res.status(500).send();
+        res.status(500).send("Adding file to project document failed");
     });
 
     // Upload file to s3 bucket.

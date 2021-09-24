@@ -2,6 +2,7 @@ var express = require("express");
 
 const helper = require("../utils/helperFunctions");
 const Employee = require("../models/employee");
+const Project = require("../models/project");
 const employeesRouter = express.Router();
 
 // Get all employees from a given organization
@@ -35,14 +36,19 @@ employeesRouter.post("/employeeGroup", async (req, res) => {
         allRequests.push(Employee.findById(id));
     });
 
-    Promise.all(allRequests).then((data) => {
-        res.send(data);
-    });
+    Promise.all(allRequests)
+        .then((data) => {
+            res.send(data);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).send();
+        });
 });
 
 // Create a new employee
 employeesRouter.post("/", async (req, res) => {
-    Employee.create({ ...req.body })
+    Employee.create(req.body)
         .then((data) => res.send(data))
         .catch((err) => {
             console.log(err);
@@ -63,27 +69,35 @@ employeesRouter.put("/:id", async (req, res) => {
 // Delete an employee by id
 employeesRouter.delete("/:id", async (req, res) => {
     const id = req.params.id;
-    try {
-        await Employee.findByIdAndDelete(id);
-        /* Gets the projects where the deleted employee was involved in */
-        const affectedProjects = await Project.find({ team: id });
 
-        /* Updates all affected projects, so that the employee is removed from it's team and tasks */
-
-        affectedProjects.forEach((project) => {
-            const updatedProject = helper.removeEmployeeFromProject(id, project);
-
-            // Can't explain why this needs $set and .exec() while other findByIdAndUpdate() calls don't
-            Project.findByIdAndUpdate(project.id, {
-                $set: { team: updatedProject.team, tasks: updatedProject.tasks },
-            }).exec();
+    // Delete employee
+    Employee.findByIdAndDelete(id)
+        .then(() => {
+            // Find all projects where the employee was involved
+            Project.find({ team: id })
+                .then((data) => {
+                    // Loop through the projects and remove the employee from the project team and every task team
+                    data.forEach((project) => {
+                        const updatedProject = helper.removeEmployeeFromProject(id, project);
+                        Project.findByIdAndUpdate(project.id, {
+                            $set: { team: updatedProject.team, tasks: updatedProject.tasks },
+                        })
+                            .then(() => res.status(204).send())
+                            .catch((err) => {
+                                console.log(err);
+                                res.status(500).send("Employee deleted. Updating projects failed.");
+                            });
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(500).send("Employee deleted. Updating projects failed.");
+                });
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).send("Delete employee failed");
         });
-
-        res.status(204).end();
-    } catch (err) {
-        console.log(err);
-        res.status(204).end();
-    }
 });
 
 module.exports = employeesRouter;
