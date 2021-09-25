@@ -7,29 +7,27 @@ const Project = require("../models/project");
 const employeesRouter = express.Router();
 
 // Get all employees from a given organization
-employeesRouter.get("/org/:organizationId", async (req, res) => {
+employeesRouter.get("/org/:organizationId", async (req, res, next) => {
     Employee.find({ organizationId: req.params.organizationId })
         .then((data) => {
             res.send(data);
         })
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Get an employee by id
-employeesRouter.get("/id/:id", async (req, res) => {
+employeesRouter.get("/id/:id", async (req, res, next) => {
     Employee.findById(req.params.id)
         .then((data) => res.send(data))
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Get employee objects for IDs given in the request body
-employeesRouter.post("/employeeGroup", async (req, res) => {
+employeesRouter.post("/employeeGroup", async (req, res, next) => {
     const employeeIdsArray = req.body.group;
     const allRequests = [];
 
@@ -42,33 +40,31 @@ employeesRouter.post("/employeeGroup", async (req, res) => {
             res.send(data);
         })
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Create a new employee
-employeesRouter.post("/", async (req, res) => {
+employeesRouter.post("/", async (req, res, next) => {
     Employee.create(req.body)
         .then((data) => res.send(data))
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Update an employee
-employeesRouter.put("/:id", async (req, res) => {
+employeesRouter.put("/:id", async (req, res, next) => {
     Employee.findByIdAndUpdate(req.params.id, req.body)
         .then((data) => res.send(data))
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Delete an employee by id
-employeesRouter.delete("/:id", async (req, res) => {
+// TODO: Needs to be a transaction
+employeesRouter.delete("/:id", async (req, res, next) => {
     const id = req.params.id;
 
     // Delete employee
@@ -78,17 +74,21 @@ employeesRouter.delete("/:id", async (req, res) => {
             Project.find({ team: id })
                 .then((data) => {
                     // Loop through the projects and remove the employee from the project team and every task team
+                    const promises = [];
                     data.forEach((project) => {
                         const updatedProject = helper.removeEmployeeFromProject(id, project);
-                        Project.findByIdAndUpdate(project.id, {
-                            $set: { team: updatedProject.team, tasks: updatedProject.tasks },
-                        })
-                            .then(() => res.status(204).send())
-                            .catch((err) => {
-                                console.log(err);
-                                res.status(500).send("Employee deleted. Updating projects failed.");
-                            });
+                        promises.push(
+                            Project.findByIdAndUpdate(project.id, {
+                                $set: { team: updatedProject.team, tasks: updatedProject.tasks },
+                            })
+                        );
                     });
+                    Promise.all(promises)
+                        .then(() => res.status(204).end())
+                        .catch((err) => {
+                            console.log(err);
+                            res.status(500).send("Employee deleted. Updating projects failed.");
+                        });
                 })
                 .catch((err) => {
                     console.log(err);

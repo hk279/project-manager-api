@@ -6,39 +6,36 @@ const Project = require("../models/project");
 const projectsRouter = express.Router();
 
 // Get all projects from a given organization
-projectsRouter.get("/org/:organizationId", (req, res) => {
+projectsRouter.get("/org/:organizationId", (req, res, next) => {
     Project.find({ organizationId: req.params.organizationId })
         .then((data) => res.send(data))
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Get a project by id
-projectsRouter.get("/id/:id", (req, res) => {
+projectsRouter.get("/id/:id", (req, res, next) => {
     Project.findById(req.params.id)
         .then((data) => {
             res.send(data);
         })
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Create a new project
-projectsRouter.post("/", (req, res) => {
+projectsRouter.post("/", (req, res, next) => {
     Project.create(req.body)
         .then((data) => res.send(data))
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Edit a project
-projectsRouter.put("/:id", (req, res) => {
+projectsRouter.put("/:id", (req, res, next) => {
     /* If employees have been removed from the project when editing, helper function removes all those employees from task teams as well. */
     let formattedData = helper.removeInvalidEmployeesFromTasks(req.body);
 
@@ -48,23 +45,21 @@ projectsRouter.put("/:id", (req, res) => {
     Project.findByIdAndUpdate(req.params.id, formattedData)
         .then((data) => res.send(data))
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Delete a project by id
-projectsRouter.delete("/:id", (req, res) => {
+projectsRouter.delete("/:id", (req, res, next) => {
     Project.findByIdAndDelete(req.params.id)
         .then(() => res.status(204).end())
         .catch((err) => {
-            console.log(err);
-            res.status(204).end();
+            next(err);
         });
 });
 
 // Get all project tags from a given organization
-projectsRouter.get("/tags/:organizationId", (req, res) => {
+projectsRouter.get("/tags/:organizationId", (req, res, next) => {
     Project.find({ organizationId: req.params.organizationId })
         .then((data) => {
             let tags = [];
@@ -76,8 +71,7 @@ projectsRouter.get("/tags/:organizationId", (req, res) => {
             res.send(tags);
         })
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
@@ -90,7 +84,7 @@ const upload = multer({ dest: "uploads/" });
 const { uploadFile, getFile, deleteFile } = require("../s3");
 
 projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res) => {
-    // Add the key of the updated file to the project in DB.
+    // Add info of the file to the project in DB.
     Project.findByIdAndUpdate(req.params.projectId, {
         $push: { files: { fileKey: req.file.filename, fileName: req.file.originalname } },
     }).catch((err) => {
@@ -108,8 +102,8 @@ projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res)
             // If uploading to the bucket fails, roll back the DB update.
             Project.findByIdAndUpdate(req.params.projectId, { $pull: { files: { fileKey: req.file.filename } } }).catch(
                 (err) => {
-                    res.status(500).send("Rollback failed");
                     console.log(err);
+                    res.status(500).send("Rollback failed");
                 }
             );
 
@@ -125,7 +119,7 @@ projectsRouter.get("/get-file/:fileKey", (req, res) => {
 });
 
 // Delete an attachment file from  DB and s3 bucket
-projectsRouter.put("/:projectId/delete-file/:fileKey", (req, res) => {
+projectsRouter.put("/:projectId/delete-file/:fileKey", (req, res, next) => {
     deleteFile(req.params.fileKey)
         .then(() => {
             Project.findByIdAndUpdate(req.params.projectId, { $pull: { files: { fileKey: req.params.fileKey } } })
@@ -136,8 +130,7 @@ projectsRouter.put("/:projectId/delete-file/:fileKey", (req, res) => {
                 });
         })
         .catch((err) => {
-            console.log(err);
-            res.status(500).end();
+            next(err);
         });
 });
 

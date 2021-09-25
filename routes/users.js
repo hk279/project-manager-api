@@ -42,7 +42,7 @@ usersRouter.get("/org/:organizationId", (req, res) => {
 usersRouter.post("/org/:organizationId", (req, res) => {});
 
 // Sign up (create organization and user)
-usersRouter.post("/signup/:accountType", async (req, res) => {
+usersRouter.post("/signup/:accountType", async (req, res, next) => {
     // Create organization document
     let organization;
     if (req.params.accountType === "private") {
@@ -86,8 +86,7 @@ usersRouter.post("/signup/:accountType", async (req, res) => {
 
         res.status(204).end();
     } catch (err) {
-        console.log(err);
-        res.status(500).send(new Error("Sign up failed"));
+        next(err);
     }
 });
 

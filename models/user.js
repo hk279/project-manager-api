@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
 
 const userSchema = new mongoose.Schema({
     firstName: {
@@ -36,8 +35,6 @@ const userSchema = new mongoose.Schema({
         required: true,
     },
 });
-
-userSchema.plugin(uniqueValidator);
 
 // Format the returned data. Remove _id-object and return a string id instead. Also remove the MongoDB version.
 userSchema.set("toJSON", {
