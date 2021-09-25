@@ -1,6 +1,6 @@
+const db = require("../mongo");
 var express = require("express");
 const { v4: uuidv4 } = require("uuid");
-
 const User = require("../models/user");
 const Organization = require("../models/organization");
 const usersRouter = express.Router();
@@ -39,20 +39,10 @@ usersRouter.get("/org/:organizationId", (req, res) => {
 
 // TODO
 // Create a new user to an organization
-usersRouter.post("/org/:organizationId", (req, res) => {
-    User.create(req.body)
-        .then((data) => res.send(data))
-        .catch((err) => {
-            console.log(err);
-            res.status(500).send();
-        });
-});
+usersRouter.post("/org/:organizationId", (req, res) => {});
 
-// Sign up (create)
-usersRouter.post("/signup/:accountType", (req, res) => {
-    // Todo
-    // Check if email already exists
-
+// Sign up (create organization and user)
+usersRouter.post("/signup/:accountType", async (req, res) => {
     // Create organization document
     let organization;
     if (req.params.accountType === "private") {
@@ -66,14 +56,16 @@ usersRouter.post("/signup/:accountType", (req, res) => {
             type: "organization",
         };
     } else {
-        res.status(500).send("Invalid account type");
+        res.status(400).send(new Error("Invalid account type"));
     }
 
-    var createdOrganizationId;
+    try {
+        const session = await db.startSession();
 
-    Organization.create(organization)
-        .then((data) => {
-            createdOrganizationId = data._id;
+        await session.withTransaction(async () => {
+            // Create organization
+            const result = await Organization.create([organization], { session });
+            const createdOrganizationId = result[0]._id;
 
             // Create user document
             let userDetails = {
@@ -84,25 +76,19 @@ usersRouter.post("/signup/:accountType", (req, res) => {
             };
             delete userDetails["organization"];
 
-            User.create(userDetails)
-                .then(() => {
-                    res.status(200).send();
-                })
-                .catch((err) => {
-                    console.log(err);
-                    // Rollback user creation
-                    Organization.findByIdAndDelete(createdOrganizationId)
-                        .then(() => res.status(500).send("User creation failed. Create organization rolled back."))
-                        .catch((err) => {
-                            console.log(err);
-                            res.status(500).send("Rollback failed");
-                        });
-                });
-        })
-        .catch((err) => {
-            console.log(err);
-            res.status(500).send("Organization creation failed");
+            // Create user
+            const user = await User.create([userDetails], { session });
+
+            return user;
         });
+
+        session.endSession();
+
+        res.status(204).end();
+    } catch (err) {
+        console.log(err);
+        res.status(500).send(new Error("Sign up failed"));
+    }
 });
 
 module.exports = usersRouter;

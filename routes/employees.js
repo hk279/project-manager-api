@@ -1,8 +1,9 @@
+const db = require("../mongo");
 var express = require("express");
-
 const helper = require("../utils/helperFunctions");
 const Employee = require("../models/employee");
 const Project = require("../models/project");
+
 const employeesRouter = express.Router();
 
 // Get all employees from a given organization
