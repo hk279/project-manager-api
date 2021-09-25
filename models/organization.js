@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
+const validator = require("../utils/validator");
 
 const organizationSchema = new mongoose.Schema({
     name: {
@@ -10,10 +10,12 @@ const organizationSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true,
+        validate: {
+            validator: validator.isValidOrganizationType,
+            message: (props) => `${props.value} is not a valid organization type`,
+        },
     },
 });
-
-organizationSchema.plugin(uniqueValidator);
 
 // Format the returned data. Remove _id-object and return a string id instead. Also remove the MongoDB version.
 organizationSchema.set("toJSON", {

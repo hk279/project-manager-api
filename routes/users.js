@@ -6,34 +6,35 @@ const Organization = require("../models/organization");
 const usersRouter = express.Router();
 
 // Get a user with given login info
-usersRouter.post("/login", (req, res) => {
+usersRouter.post("/login", (req, res, next) => {
     User.findOne({ email: req.body.email, password: req.body.password })
         .then((data) => {
-            res.send(data);
+            if (data) {
+                res.send(data);
+            } else {
+                res.status(401).send({ messages: "Wrong email or password" });
+            }
         })
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Change password
-usersRouter.put("/change-password/:id", (req, res) => {
+usersRouter.put("/change-password/:id", (req, res, next) => {
     User.findByIdAndUpdate(req.params.id, req.body)
         .then((data) => res.send(data))
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
 // Get all users by organization
-usersRouter.get("/org/:organizationId", (req, res) => {
+usersRouter.get("/org/:organizationId", (req, res, next) => {
     User.find({ organizationId: req.params.organizationId })
         .then((data) => res.send(data))
         .catch((err) => {
-            console.log(err);
-            res.status(500).send();
+            next(err);
         });
 });
 
@@ -62,7 +63,7 @@ usersRouter.post("/signup/:accountType", async (req, res, next) => {
     try {
         const session = await db.startSession();
 
-        await session.withTransaction(async () => {
+        const createdUser = await session.withTransaction(async () => {
             // Create organization
             const result = await Organization.create([organization], { session });
             const createdOrganizationId = result[0]._id;
@@ -84,7 +85,7 @@ usersRouter.post("/signup/:accountType", async (req, res, next) => {
 
         session.endSession();
 
-        res.status(204).end();
+        res.status(201).send(createdUser);
     } catch (err) {
         next(err);
     }

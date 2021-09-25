@@ -22,6 +22,6 @@ module.exports = (err, req, res, next) => {
         if (err.name === "ValidationError") return (err = handleValidationError(err, res));
         if (err.code && err.code == 11000) return (err = handleDuplicateKeyError(err, res));
     } catch (err) {
-        res.status(500).send("An unknown error occurred.");
+        res.status(500).send({ messages: "An unknown error occurred." });
     }
 };

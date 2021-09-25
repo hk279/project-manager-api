@@ -5,7 +5,7 @@ const employeesRouter = require("./routes/employees");
 const projectsRouter = require("./routes/projects");
 const organizationsRouter = require("./routes/organizations");
 
-const errorHandler = require("./errorHandler");
+const errorHandler = require("./utils/errorHandler");
 const cors = require("cors");
 const express = require("express");
 const app = express();

@@ -28,7 +28,7 @@ projectsRouter.get("/id/:id", (req, res, next) => {
 // Create a new project
 projectsRouter.post("/", (req, res, next) => {
     Project.create(req.body)
-        .then((data) => res.send(data))
+        .then((data) => res.status(201).send(data))
         .catch((err) => {
             next(err);
         });
@@ -81,7 +81,7 @@ const fs = require("fs");
 const util = require("util");
 const unlinkFile = util.promisify(fs.unlink);
 const upload = multer({ dest: "uploads/" });
-const { uploadFile, getFile, deleteFile } = require("../s3");
+const { uploadFile, getFile, deleteFile } = require("../utils/s3");
 
 projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res) => {
     // Add info of the file to the project in DB.

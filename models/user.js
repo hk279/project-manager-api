@@ -1,19 +1,32 @@
 const mongoose = require("mongoose");
+const validator = require("../utils/validator");
 
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
+        validate: {
+            validator: validator.isValidName,
+            message: (props) => `${props.value} is not a valid name`,
+        },
     },
     lastName: {
         type: String,
         required: true,
+        validate: {
+            validator: validator.isValidName,
+            message: (props) => `${props.value} is not a valid name`,
+        },
     },
     email: {
         type: String,
         minlength: 5,
         required: true,
         unique: true,
+        validate: {
+            validator: validator.isEmail,
+            message: (props) => `${props.value} is not a valid email`,
+        },
     },
     password: {
         type: String,
@@ -24,15 +37,21 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // Admin or normal
     userType: {
         type: String,
         required: true,
+        validate: {
+            validator: validator.isValidUserType,
+            message: (props) => `${props.value} is not a valid user type`,
+        },
     },
-    // Private or organization
     userOrganizationType: {
         type: String,
         required: true,
+        validate: {
+            validator: validator.isValidOrganizationType,
+            message: (props) => `${props.value} is not a valid organization type`,
+        },
     },
 });
 

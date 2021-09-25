@@ -1,4 +1,3 @@
-const db = require("../mongo");
 var express = require("express");
 const helper = require("../utils/helperFunctions");
 const Employee = require("../models/employee");
@@ -47,7 +46,7 @@ employeesRouter.post("/employeeGroup", async (req, res, next) => {
 // Create a new employee
 employeesRouter.post("/", async (req, res, next) => {
     Employee.create(req.body)
-        .then((data) => res.send(data))
+        .then((data) => res.status(201).send(data))
         .catch((err) => {
             next(err);
         });
