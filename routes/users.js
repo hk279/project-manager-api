@@ -1,6 +1,8 @@
 const db = require("../mongo");
 var express = require("express");
 const { v4: uuidv4 } = require("uuid");
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Organization = require("../models/organization");
 const usersRouter = express.Router();
@@ -10,32 +12,27 @@ usersRouter.post("/login", (req, res, next) => {
     User.findOne({ email: req.body.email, password: req.body.password })
         .then((data) => {
             if (data) {
-                res.send(data);
+                const accessToken = jwt.sign({ ...data }, process.env.JWT_SECRET);
+                res.cookie("accessToken", accessToken, { httpOnly: true }).send(data);
             } else {
                 res.status(401).send({ messages: "Wrong email or password" });
             }
         })
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 // Change password
 usersRouter.put("/change-password/:id", (req, res, next) => {
     User.findByIdAndUpdate(req.params.id, req.body)
         .then((data) => res.send(data))
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 // Get all users by organization
 usersRouter.get("/org/:organizationId", (req, res, next) => {
     User.find({ organizationId: req.params.organizationId })
         .then((data) => res.send(data))
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 // TODO
