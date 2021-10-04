@@ -29,7 +29,7 @@ usersRouter.post("/login", async (req, res, next) => {
             userType: user.userType,
             userOrganizationType: user.userOrganizationType,
         };
-        const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: 10 }); // 10 sec expiration for testing
+        const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: 15 * 60 });
 
         res.send({ ...userObject, accessToken });
     } catch (err) {
