@@ -2,23 +2,39 @@ const db = require("../mongo");
 var express = require("express");
 const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Organization = require("../models/organization");
 const usersRouter = express.Router();
 
-// Get a user with given login info
-usersRouter.post("/login", (req, res, next) => {
-    User.findOne({ email: req.body.email, password: req.body.password })
-        .then((data) => {
-            if (data) {
-                const accessToken = jwt.sign({ ...data }, process.env.JWT_SECRET);
-                res.cookie("accessToken", accessToken, { httpOnly: true }).send(data);
-            } else {
-                res.status(401).send({ messages: "Wrong email or password" });
-            }
-        })
-        .catch((err) => next(err));
+// Login
+usersRouter.post("/login", async (req, res, next) => {
+    try {
+        // Get user by email
+        const user = await User.findOne({ email: req.body.email });
+
+        // Check password
+        const passwordCorrect = user === null ? false : await bcrypt.compare(req.body.password, user.password);
+
+        // Handle error if invalid credentials
+        if (!passwordCorrect) return res.status(401).json({ messages: "Invalid email or password" });
+
+        // Create access token
+        let userObject = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            organizationId: user.organizationId,
+            userType: user.userType,
+            userOrganizationType: user.userOrganizationType,
+        };
+        const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: 10 }); // 10 sec expiration for testing
+
+        res.send({ ...userObject, accessToken });
+    } catch (err) {
+        next(err);
+    }
 });
 
 // Change password
@@ -65,9 +81,13 @@ usersRouter.post("/signup/:accountType", async (req, res, next) => {
             const result = await Organization.create([organization], { session });
             const createdOrganizationId = result[0]._id;
 
+            // Hash password with 10 salt rounds
+            const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
             // Create user document
             let userDetails = {
                 ...req.body,
+                password: hashedPassword,
                 userType: "admin",
                 organizationId: createdOrganizationId,
                 userOrganizationType: req.params.accountType,

@@ -4,6 +4,7 @@ const isEmail = (val) => {
     return regex.test(String(val).toLowerCase());
 };
 
+// TODO: fix to allow scandinavian characters
 const isValidName = (val) => {
     const regex = /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/g;
     return regex.test(String(val).toLowerCase());
