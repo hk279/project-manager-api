@@ -8,15 +8,13 @@ const organizationsRouter = require("./routes/organizations");
 
 const cors = require("cors");
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const errorHandler = require("./utils/errorHandler");
 const authenticator = require("./utils/authenticator");
 
 const app = express();
 
-app.use(cors());
 app.use(express.json());
-app.use(cookieParser());
+app.use(cors());
 
 app.use("/auth", authRouter);
 app.use("/organizations", authenticator, organizationsRouter);

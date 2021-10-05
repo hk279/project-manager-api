@@ -9,29 +9,21 @@ const projectsRouter = express.Router();
 projectsRouter.get("/org/:organizationId", (req, res, next) => {
     Project.find({ organizationId: req.params.organizationId })
         .then((data) => res.send(data))
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 // Get a project by id
 projectsRouter.get("/id/:id", (req, res, next) => {
     Project.findById(req.params.id)
-        .then((data) => {
-            res.send(data);
-        })
-        .catch((err) => {
-            next(err);
-        });
+        .then((data) => res.send(data))
+        .catch((err) => next(err));
 });
 
 // Create a new project
 projectsRouter.post("/", (req, res, next) => {
     Project.create(req.body)
         .then((data) => res.status(201).send(data))
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 // Edit a project
@@ -44,18 +36,14 @@ projectsRouter.put("/:id", (req, res, next) => {
 
     Project.findByIdAndUpdate(req.params.id, formattedData)
         .then((data) => res.send(data))
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 // Delete a project by id
 projectsRouter.delete("/:id", (req, res, next) => {
     Project.findByIdAndDelete(req.params.id)
         .then(() => res.status(204).end())
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 // Get all project tags from a given organization
@@ -70,9 +58,7 @@ projectsRouter.get("/tags/:organizationId", (req, res, next) => {
             });
             res.send(tags);
         })
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 // Uploading file attachments to a project
@@ -129,9 +115,7 @@ projectsRouter.put("/:projectId/delete-file/:fileKey", (req, res, next) => {
                     res.status(500).end();
                 });
         })
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 });
 
 module.exports = projectsRouter;

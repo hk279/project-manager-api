@@ -17,9 +17,12 @@ usersRouter.get("/org/:organizationId", (req, res, next) => {
         .catch((err) => next(err));
 });
 
-// TODO
-// Create a new user to an organization
-usersRouter.post("/org/:organizationId", (req, res) => {});
+// Create a new user
+usersRouter.post("/", (req, res, next) => {
+    User.create(req.body)
+        .then((data) => res.status(201).send(data))
+        .catch((err) => next(err));
+});
 
 // Update user
 usersRouter.put("/:userId", (req, res, next) => {
