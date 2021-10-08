@@ -1,6 +1,7 @@
 var express = require("express");
 require("dotenv").config();
 const User = require("../models/user");
+const adminCheck = require("../utils/adminCheck");
 const usersRouter = express.Router();
 
 // Change password
@@ -17,8 +18,12 @@ usersRouter.get("/org/:organizationId", (req, res, next) => {
         .catch((err) => next(err));
 });
 
-// Create a new user
+// Create a new user (ADMIN ONLY)
 usersRouter.post("/", (req, res, next) => {
+    if (!adminCheck(req)) {
+        return res.status(403).send({ messages: "Unauthorized user" });
+    }
+
     User.create(req.body)
         .then((data) => res.status(201).send(data))
         .catch((err) => next(err));
@@ -32,6 +37,17 @@ usersRouter.put("/:userId", (req, res, next) => {
             delete data["password"];
             res.status(200).send(updatedUser);
         })
+        .catch((err) => next(err));
+});
+
+// Delete user (ADMIN ONLY)
+usersRouter.delete("/:userId", (req, res, next) => {
+    if (!adminCheck(req)) {
+        return res.status(403).send({ messages: "Unauthorized user" });
+    }
+
+    User.findByIdAndDelete(req.params.userId)
+        .then(() => res.status(204).end())
         .catch((err) => next(err));
 });
 
