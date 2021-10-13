@@ -1,11 +1,32 @@
 var express = require("express");
 require("dotenv").config();
+const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const adminCheck = require("../utils/adminCheck");
 const usersRouter = express.Router();
 
 // Change password
-usersRouter.put("/change-password/:userId", (req, res, next) => {
+usersRouter.put("/change-password/:userId", async (req, res, next) => {
+    try {
+        // Get user by id
+        const user = await User.findById(req.params.userId);
+
+        // Check password
+        const passwordCorrect = user === null ? false : await bcrypt.compare(req.body.currentPassword, user.password);
+        if (!passwordCorrect) return res.status(403).json({ messages: "Invalid current password" });
+
+        // Hash the new password with 10 salt rounds
+        const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
+
+        await User.findByIdAndUpdate(req.params.userId, {
+            $set: { password: hashedPassword },
+        });
+
+        res.status(200).json(req.body);
+    } catch (err) {
+        next(err);
+    }
+
     User.findByIdAndUpdate(req.params.userId, req.body)
         .then((data) => res.send(data))
         .catch((err) => next(err));

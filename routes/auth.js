@@ -16,8 +16,6 @@ authRouter.post("/login", async (req, res, next) => {
 
         // Check password
         const passwordCorrect = user === null ? false : await bcrypt.compare(req.body.password, user.password);
-
-        // Handle error if invalid credentials
         if (!passwordCorrect) return res.status(401).json({ messages: "Invalid email or password" });
 
         // Create access token
