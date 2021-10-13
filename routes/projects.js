@@ -46,14 +46,16 @@ projectsRouter.delete("/:id", (req, res, next) => {
         .catch((err) => next(err));
 });
 
-// Get all project tags from a given organization
+// Get all unique project tags from a given organization
 projectsRouter.get("/tags/:organizationId", (req, res, next) => {
     Project.find({ organizationId: req.params.organizationId })
         .then((data) => {
             let tags = [];
             data.forEach((project) => {
                 project.tags.forEach((tag) => {
-                    tags.push(tag);
+                    if (!tags.includes(tag)) {
+                        tags.push(tag);
+                    }
                 });
             });
             res.send(tags);
