@@ -27,21 +27,21 @@ projectsRouter.post("/", (req, res, next) => {
 });
 
 // Edit a project
-projectsRouter.put("/:id", (req, res, next) => {
+projectsRouter.put("/:projectId", (req, res, next) => {
     /* If employees have been removed from the project when editing, helper function removes all those employees from task teams as well. */
     let formattedData = helper.removeInvalidEmployeesFromTasks(req.body);
 
     // Creates a new object with tasks sorted by status (Not started, Doing, Completed).
     formattedData = { ...formattedData, tasks: helper.sortTasksByStatus(req.body.tasks) };
 
-    Project.findByIdAndUpdate(req.params.id, formattedData)
+    Project.findByIdAndUpdate(req.params.projectId, formattedData)
         .then((data) => res.send(data))
         .catch((err) => next(err));
 });
 
 // Delete a project by id
-projectsRouter.delete("/:id", (req, res, next) => {
-    Project.findByIdAndDelete(req.params.id)
+projectsRouter.delete("/:projectId", (req, res, next) => {
+    Project.findByIdAndDelete(req.params.projectId)
         .then(() => res.status(204).end())
         .catch((err) => next(err));
 });
@@ -117,6 +117,22 @@ projectsRouter.put("/:projectId/delete-file/:fileKey", (req, res, next) => {
                     res.status(500).end();
                 });
         })
+        .catch((err) => next(err));
+});
+
+// Add comment
+projectsRouter.put("/:projectId/add-comment", (req, res, next) => {
+    Project.findByIdAndUpdate(req.params.projectId, {
+        $push: { comments: req.body },
+    })
+        .then(() => res.status(200).send())
+        .catch((err) => next(err));
+});
+
+// Delete comment
+projectsRouter.put("/:projectId/delete-comment/:commentId", (req, res, next) => {
+    Project.findByIdAndUpdate(req.params.projectId, { $pull: { comments: { id: req.params.commentId.toString() } } })
+        .then(() => res.status(200).send())
         .catch((err) => next(err));
 });
 
