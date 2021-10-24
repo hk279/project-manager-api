@@ -53,6 +53,10 @@ const userSchema = new mongoose.Schema({
             message: (props) => `${props.value} is not a valid organization type`,
         },
     },
+    avatar: {
+        type: Object,
+        required: false,
+    },
 });
 
 // Format the returned data. Remove _id-object and return a string id instead. Also remove the MongoDB version.

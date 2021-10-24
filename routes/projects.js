@@ -75,9 +75,8 @@ projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res)
     // Add info of the file to the project in DB.
     Project.findByIdAndUpdate(req.params.projectId, {
         $push: { files: { fileKey: req.file.filename, fileName: req.file.originalname } },
-    }).catch((err) => {
-        console.log(err);
-        res.status(500).send("Adding file to project document failed");
+    }).catch(() => {
+        res.status(500).send({ messages: "Adding file to project document failed" });
     });
 
     // Upload file to s3 bucket.

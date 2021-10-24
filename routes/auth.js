@@ -27,6 +27,7 @@ authRouter.post("/login", async (req, res, next) => {
             organizationId: user.organizationId,
             userType: user.userType,
             userOrganizationType: user.userOrganizationType,
+            avatar: user.avatar,
         };
         const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
 
