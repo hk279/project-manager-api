@@ -40,24 +40,42 @@ usersRouter.get("/org/:organizationId", (req, res, next) => {
         .catch((err) => next(err));
 });
 
+// Get a single user by id
+usersRouter.get("/id/:userId", (req, res, next) => {
+    User.findById(req.params.userId)
+        .then((data) => {
+            // Needs ._doc to work"
+            delete data._doc.password;
+            res.send(data);
+        })
+        .catch((err) => next(err));
+});
+
 // Create a new user (ADMIN ONLY)
-usersRouter.post("/", (req, res, next) => {
+usersRouter.post("/", async (req, res, next) => {
     if (!adminCheck(req)) {
         return res.status(403).send({ messages: "Unauthorized user" });
     }
 
-    User.create(req.body)
-        .then((data) => res.status(201).send(data))
-        .catch((err) => next(err));
+    try {
+        // Hash password with 10 salt rounds
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const userDocument = { ...req.body, password: hashedPassword };
+
+        const newUser = await User.create(userDocument);
+        res.status(201).send(newUser);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // Update user
 usersRouter.put("/:userId", (req, res, next) => {
     User.findByIdAndUpdate(req.params.userId, req.body, { new: true })
         .then((data) => {
-            let updatedUser = data;
-            delete data["password"];
-            res.status(200).send(updatedUser);
+            // Needs ._doc to work"
+            delete data._doc.password;
+            res.status(200).send(data);
         })
         .catch((err) => next(err));
 });

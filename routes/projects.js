@@ -13,8 +13,8 @@ projectsRouter.get("/org/:organizationId", (req, res, next) => {
 });
 
 // Get a project by id
-projectsRouter.get("/id/:id", (req, res, next) => {
-    Project.findById(req.params.id)
+projectsRouter.get("/id/:projectId", (req, res, next) => {
+    Project.findById(req.params.projectId)
         .then((data) => res.send(data))
         .catch((err) => next(err));
 });
