@@ -28,8 +28,8 @@ projectsRouter.post("/", (req, res, next) => {
 
 // Edit a project
 projectsRouter.put("/:projectId", (req, res, next) => {
-    /* If employees have been removed from the project when editing, helper function removes all those employees from task teams as well. */
-    let formattedData = helper.removeInvalidEmployeesFromTasks(req.body);
+    /* If users have been removed from the project when editing, helper function removes all those employees from task teams as well. */
+    let formattedData = helper.removeInvalidUsersFromTasks(req.body);
 
     // Creates a new object with tasks sorted by status (Not started, Doing, Completed).
     formattedData = { ...formattedData, tasks: helper.sortTasksByStatus(req.body.tasks) };
@@ -130,7 +130,7 @@ projectsRouter.put("/:projectId/add-comment", (req, res, next) => {
 
 // Delete comment
 projectsRouter.put("/:projectId/delete-comment/:commentId", (req, res, next) => {
-    Project.findByIdAndUpdate(req.params.projectId, { $pull: { comments: { id: req.params.commentId.toString() } } })
+    Project.findByIdAndUpdate(req.params.projectId, { $pull: { comments: { _id: req.params.commentId } } })
         .then(() => res.status(200).send())
         .catch((err) => next(err));
 });

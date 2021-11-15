@@ -6,6 +6,79 @@ const User = require("../models/user");
 const adminCheck = require("../utils/adminCheck");
 const usersRouter = express.Router();
 
+// Get all users by organization
+usersRouter.get("/org/:organizationId", (req, res, next) => {
+    User.find({ organizationId: req.params.organizationId })
+        .then((data) => res.send(data))
+        .catch((err) => next(err));
+});
+
+// Get users for IDs given in the request body
+usersRouter.post("/group:search", (req, res, next) => {
+    const userIdsArray = req.body.group;
+    const allRequests = [];
+
+    userIdsArray.forEach((id) => {
+        allRequests.push(User.findById(id));
+    });
+
+    Promise.all(allRequests)
+        .then((data) => res.send(data))
+        .catch((err) => next(err));
+});
+
+// Get a single user by id
+usersRouter.get("/id/:userId", (req, res, next) => {
+    User.findById(req.params.userId)
+        .then((data) => {
+            // Needs ._doc to work"
+            delete data._doc.password;
+            res.send(data);
+        })
+        .catch((err) => next(err));
+});
+
+// Update user
+usersRouter.put("/:userId", (req, res, next) => {
+    User.findByIdAndUpdate(req.params.userId, req.body, { new: true })
+        .then((data) => {
+            // Needs ._doc to work"
+            delete data._doc.password;
+            res.status(200).send(data);
+        })
+        .catch((err) => next(err));
+});
+
+// Delete user (ADMIN ONLY)
+// TODO: Has to be improved: see delete in employees.js
+usersRouter.delete("/:userId", (req, res, next) => {
+    if (!adminCheck(req)) {
+        return res.status(403).send({ messages: "Unauthorized user" });
+    }
+
+    User.findByIdAndDelete(req.params.userId)
+        .then(() => res.status(204).end())
+        .catch((err) => next(err));
+});
+
+// Create a new user (ADMIN ONLY)
+usersRouter.post("/", async (req, res, next) => {
+    if (!adminCheck(req)) {
+        return res.status(403).send({ messages: "Unauthorized user" });
+    }
+
+    try {
+        // Hash password with 10 salt rounds
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const userDocument = { ...req.body, password: hashedPassword };
+
+        const newUser = await User.create(userDocument);
+        res.status(201).send(newUser);
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Change password
 usersRouter.put("/change-password/:userId", async (req, res, next) => {
     try {
@@ -30,64 +103,6 @@ usersRouter.put("/change-password/:userId", async (req, res, next) => {
 
     User.findByIdAndUpdate(req.params.userId, req.body)
         .then((data) => res.send(data))
-        .catch((err) => next(err));
-});
-
-// Get all users by organization
-usersRouter.get("/org/:organizationId", (req, res, next) => {
-    User.find({ organizationId: req.params.organizationId })
-        .then((data) => res.send(data))
-        .catch((err) => next(err));
-});
-
-// Get a single user by id
-usersRouter.get("/id/:userId", (req, res, next) => {
-    User.findById(req.params.userId)
-        .then((data) => {
-            // Needs ._doc to work"
-            delete data._doc.password;
-            res.send(data);
-        })
-        .catch((err) => next(err));
-});
-
-// Create a new user (ADMIN ONLY)
-usersRouter.post("/", async (req, res, next) => {
-    if (!adminCheck(req)) {
-        return res.status(403).send({ messages: "Unauthorized user" });
-    }
-
-    try {
-        // Hash password with 10 salt rounds
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const userDocument = { ...req.body, password: hashedPassword };
-
-        const newUser = await User.create(userDocument);
-        res.status(201).send(newUser);
-    } catch (err) {
-        next(err);
-    }
-});
-
-// Update user
-usersRouter.put("/:userId", (req, res, next) => {
-    User.findByIdAndUpdate(req.params.userId, req.body, { new: true })
-        .then((data) => {
-            // Needs ._doc to work"
-            delete data._doc.password;
-            res.status(200).send(data);
-        })
-        .catch((err) => next(err));
-});
-
-// Delete user (ADMIN ONLY)
-usersRouter.delete("/:userId", (req, res, next) => {
-    if (!adminCheck(req)) {
-        return res.status(403).send({ messages: "Unauthorized user" });
-    }
-
-    User.findByIdAndDelete(req.params.userId)
-        .then(() => res.status(204).end())
         .catch((err) => next(err));
 });
 
