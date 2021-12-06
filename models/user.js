@@ -18,6 +18,22 @@ const userSchema = new mongoose.Schema({
             message: (props) => `${props.value} is not a valid name`,
         },
     },
+    userType: {
+        type: String,
+        required: true,
+        validate: {
+            validator: validator.isValidUserType,
+            message: (props) => `${props.value} is not a valid user type`,
+        },
+    },
+    userOrganizationType: {
+        type: String,
+        required: true,
+        validate: {
+            validator: validator.isValidOrganizationType,
+            message: (props) => `${props.value} is not a valid organization type`,
+        },
+    },
     email: {
         type: String,
         minlength: 5,
@@ -28,14 +44,32 @@ const userSchema = new mongoose.Schema({
             message: (props) => `${props.value} is not a valid email`,
         },
     },
+    organizationId: {
+        type: String,
+        required: true,
+    },
     password: {
         type: String,
         minlength: 5,
         required: true,
     },
+    phone: {
+        type: Number,
+        minlength: 5,
+        required: false,
+        unique: true,
+    },
     avatar: {
         type: Object,
         required: false,
+    },
+    department: {
+        type: String,
+        required: false,
+    },
+    skills: {
+        type: [String],
+        required: true,
     },
 });
 

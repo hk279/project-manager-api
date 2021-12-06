@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const taskSchema = require("./task");
+const commentSchema = require("./comment");
 const validator = require("../utils/validator");
 
 const projectSchema = new mongoose.Schema({
@@ -43,11 +45,11 @@ const projectSchema = new mongoose.Schema({
         required: true,
     },
     tasks: {
-        type: Array,
+        type: [taskSchema],
         required: true,
     },
     comments: {
-        type: Array,
+        type: [commentSchema],
         required: true,
     },
 });

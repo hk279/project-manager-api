@@ -12,30 +12,29 @@ const sortTasksByStatus = (tasks) => {
     });
 };
 
-const removeEmployeeFromProject = (employeeId, project) => {
+const removeUserFromProject = (userId, project) => {
     /* Removes the deleted employee from task teams */
     const updatedTasks = project.tasks.map((task) => {
-        const newTeam = task.taskTeam.filter((member) => member !== employeeId);
-        return { ...task, taskTeam: newTeam };
+        if (task.assignedTo === userId) {
+            return { ...task, assignedTo: "" };
+        }
+        return task;
     });
 
-    /* Removes the delete employee from project team */
-    const updatedProjectTeam = project.team.filter((member) => member !== employeeId);
+    /* Removes the deleted employee from project team */
+    const updatedProjectTeam = project.team.filter((member) => member !== userId);
 
     const updatedProject = { ...project, team: updatedProjectTeam, tasks: updatedTasks };
 
     return updatedProject;
 };
 
-const removeInvalidEmployeesFromTasks = (project) => {
+const removeInvalidUsersFromTasks = (project) => {
     const updatedTasks = project.tasks.map((task) => {
-        let newTeam;
-        task.taskTeam.forEach((taskMember) => {
-            if (!project.team.includes(taskMember)) {
-                newTeam = task.taskTeam.filter((member) => member !== taskMember);
-            }
-        });
-        return { ...task, taskTeam: newTeam };
+        if (!project.team.includes(task.assignedTo)) {
+            return { ...task, assignedTo: "" };
+        }
+        return task;
     });
 
     return { ...project, tasks: updatedTasks };
@@ -43,6 +42,6 @@ const removeInvalidEmployeesFromTasks = (project) => {
 
 module.exports = {
     sortTasksByStatus,
-    removeEmployeeFromProject,
-    removeInvalidEmployeesFromTasks,
+    removeUserFromProject,
+    removeInvalidUsersFromTasks,
 };
