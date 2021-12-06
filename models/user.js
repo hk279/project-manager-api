@@ -33,26 +33,6 @@ const userSchema = new mongoose.Schema({
         minlength: 5,
         required: true,
     },
-    organizationId: {
-        type: String,
-        required: true,
-    },
-    userType: {
-        type: String,
-        required: true,
-        validate: {
-            validator: validator.isValidUserType,
-            message: (props) => `${props.value} is not a valid user type`,
-        },
-    },
-    userOrganizationType: {
-        type: String,
-        required: true,
-        validate: {
-            validator: validator.isValidOrganizationType,
-            message: (props) => `${props.value} is not a valid organization type`,
-        },
-    },
     avatar: {
         type: Object,
         required: false,

@@ -1,9 +1,18 @@
 const mongoose = require("mongoose");
+const validator = require("../utils/validator");
 
 const projectSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
+    },
+    type: {
+        type: String,
+        required: true,
+        validate: {
+            validator: validator.isValidProjectType,
+            message: (props) => `${props.value} is not a valid project type`,
+        },
     },
     client: {
         type: String,
@@ -17,7 +26,7 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
-    organizationId: {
+    workspaceId: {
         type: String,
         required: true,
     },
