@@ -1,15 +1,20 @@
 const mongoose = require("mongoose");
 const taskSchema = require("./task");
 const commentSchema = require("./comment");
+const validator = require("../utils/validator");
 
 const projectSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
     },
-    client: {
+    type: {
         type: String,
         required: true,
+        validate: {
+            validator: validator.isValidProjectType,
+            message: (props) => `${props.value} is not a valid project type`,
+        },
     },
     description: {
         type: String,
@@ -19,7 +24,7 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
-    organizationId: {
+    workspaceId: {
         type: String,
         required: true,
     },

@@ -2,9 +2,8 @@ require("./mongo");
 
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
-const employeesRouter = require("./routes/employees");
 const projectsRouter = require("./routes/projects");
-const organizationsRouter = require("./routes/organizations");
+const workspacesRouter = require("./routes/workspaces");
 
 const cors = require("cors");
 const express = require("express");
@@ -17,8 +16,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/auth", authRouter);
-app.use("/organizations", authenticator, organizationsRouter);
-app.use("/employees", authenticator, employeesRouter);
+app.use("/workspaces", authenticator, workspacesRouter);
 app.use("/projects", authenticator, projectsRouter);
 app.use("/users", authenticator, usersRouter);
 app.use(errorHandler);

@@ -14,13 +14,18 @@ const isValidUserType = (val) => {
     return val === "admin" || val === "normal";
 };
 
-const isValidOrganizationType = (val) => {
-    return val === "private" || val === "organization";
+const isValidProjectType = (val) => {
+    return val === "personal" || val === "internal" || val === "client";
+};
+
+const isValidWorkspaceType = (val) => {
+    return val === "private" || val === "business";
 };
 
 module.exports = {
     isEmail,
     isValidName,
     isValidUserType,
-    isValidOrganizationType,
+    isValidProjectType,
+    isValidWorkspaceType,
 };

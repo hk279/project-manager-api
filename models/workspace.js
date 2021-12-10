@@ -1,39 +1,32 @@
 const mongoose = require("mongoose");
 const validator = require("../utils/validator");
 
-const employeeSchema = new mongoose.Schema({
-    firstName: {
+const workspaceSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        minlength: 3,
+        required: true,
+    },
+    type: {
         type: String,
         required: true,
         validate: {
-            validator: validator.isValidName,
-            message: (props) => `${props.value} is not a valid name`,
+            validator: validator.isValidWorkspaceType,
+            message: (props) => `${props.value} is not a valid workspace type`,
         },
     },
-    lastName: {
-        type: String,
-        required: true,
-        validate: {
-            validator: validator.isValidName,
-            message: (props) => `${props.value} is not a valid name`,
-        },
-    },
-    organizationId: {
+    owner: {
         type: String,
         required: true,
     },
-    department: {
-        type: String,
+    members: {
+        type: Object,
         required: true,
-    },
-    skills: {
-        type: [String],
-        required: false,
     },
 });
 
 // Format the returned data. Remove _id-object and return a string id instead. Also remove the MongoDB version.
-employeeSchema.set("toJSON", {
+workspaceSchema.set("toJSON", {
     transform: (document, returnedObject) => {
         returnedObject.id = returnedObject._id.toString();
         delete returnedObject._id;
@@ -41,4 +34,4 @@ employeeSchema.set("toJSON", {
     },
 });
 
-module.exports = mongoose.model("Employee", employeeSchema);
+module.exports = mongoose.model("Workspace", workspaceSchema);

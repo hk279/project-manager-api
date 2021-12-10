@@ -5,9 +5,9 @@ const helper = require("../utils/helperFunctions");
 const Project = require("../models/project");
 const projectsRouter = express.Router();
 
-// Get all projects from a given organization
-projectsRouter.get("/org/:organizationId", (req, res, next) => {
-    Project.find({ organizationId: req.params.organizationId })
+// Get all projects from a given workspace
+projectsRouter.get("/workspace/:workspaceId", (req, res, next) => {
+    Project.find({ workspaceId: req.params.workspaceId })
         .then((data) => res.send(data))
         .catch((err) => next(err));
 });
@@ -46,9 +46,9 @@ projectsRouter.delete("/:projectId", (req, res, next) => {
         .catch((err) => next(err));
 });
 
-// Get all unique project tags from a given organization
-projectsRouter.get("/tags/:organizationId", (req, res, next) => {
-    Project.find({ organizationId: req.params.organizationId })
+// Get all unique project tags from a given workspace
+projectsRouter.get("/tags/:workspaceId", (req, res, next) => {
+    Project.find({ workspaceId: req.params.workspaceId })
         .then((data) => {
             let tags = [];
             data.forEach((project) => {
