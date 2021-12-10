@@ -1,16 +1,30 @@
+const db = require("../mongo");
 var express = require("express");
 const multer = require("multer");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
+const Workspace = require("../models/workspace");
 const adminCheck = require("../utils/adminCheck");
 const usersRouter = express.Router();
 
-// Get all users by organization
-usersRouter.get("/org/:organizationId", (req, res, next) => {
-    User.find({ organizationId: req.params.organizationId })
-        .then((data) => res.send(data))
-        .catch((err) => next(err));
+// Get all users in a workspace
+usersRouter.get("/workspace/:workspaceId", async (req, res, next) => {
+    try {
+        // Get workspace
+        const workspace = await Workspace.findById(req.params.workspaceId);
+
+        const memberIds = workspace.members.map((member) => {
+            return member.userId;
+        });
+
+        // Get user documents for all workspace members
+        const users = await User.find({ _id: { $in: memberIds } });
+
+        res.status(200).send(users);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // Get users for IDs given in the request body

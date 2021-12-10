@@ -18,10 +18,6 @@ const isValidProjectType = (val) => {
     return val === "personal" || val === "internal" || val === "client";
 };
 
-const isValidOrganizationType = (val) => {
-    return val === "private" || val === "organization";
-};
-
 const isValidWorkspaceType = (val) => {
     return val === "private" || val === "business";
 };
@@ -31,6 +27,5 @@ module.exports = {
     isValidName,
     isValidUserType,
     isValidProjectType,
-    isValidOrganizationType,
     isValidWorkspaceType,
 };
