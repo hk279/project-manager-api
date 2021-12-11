@@ -25,6 +25,7 @@ authRouter.post("/login", async (req, res, next) => {
             avatar: user.avatar,
             activeWorkspace: user.defaultWorkspace,
             defaultWorkspace: user.defaultWorkspace,
+            skills: user.skills,
         };
         const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
 
