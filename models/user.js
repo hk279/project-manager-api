@@ -34,10 +34,9 @@ const userSchema = new mongoose.Schema({
         required: true,
     },
     phone: {
-        type: Number,
+        type: String,
         minlength: 5,
         required: false,
-        unique: true,
     },
     avatar: {
         type: Object,
