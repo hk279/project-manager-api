@@ -45,7 +45,7 @@ usersRouter.post("/group:search", (req, res, next) => {
 usersRouter.get("/id/:userId", (req, res, next) => {
     User.findById(req.params.userId)
         .then((data) => {
-            // Needs ._doc to work"
+            // Needs ._doc to work
             delete data._doc.password;
             res.send(data);
         })
@@ -63,35 +63,9 @@ usersRouter.put("/:userId", (req, res, next) => {
         .catch((err) => next(err));
 });
 
-// Delete user (ADMIN ONLY)
-// TODO: Has to be improved: see delete in employees.js
-usersRouter.delete("/:userId", (req, res, next) => {
-    if (!adminCheck(req)) {
-        return res.status(403).send({ messages: "Unauthorized user" });
-    }
-
-    User.findByIdAndDelete(req.params.userId)
-        .then(() => res.status(204).end())
-        .catch((err) => next(err));
-});
-
-// Create a new user (ADMIN ONLY)
-usersRouter.post("/", async (req, res, next) => {
-    if (!adminCheck(req)) {
-        return res.status(403).send({ messages: "Unauthorized user" });
-    }
-
-    try {
-        // Hash password with 10 salt rounds
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const userDocument = { ...req.body, password: hashedPassword };
-
-        const newUser = await User.create(userDocument);
-        res.status(201).send(newUser);
-    } catch (err) {
-        next(err);
-    }
-});
+// Delete user
+// TODO: Has to be restricted to the user itself. Also has to remove user from workspaces, projects and tasks.
+usersRouter.delete("/:userId", (req, res, next) => {});
 
 // Change password
 usersRouter.put("/change-password/:userId", async (req, res, next) => {

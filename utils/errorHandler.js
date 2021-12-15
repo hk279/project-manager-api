@@ -20,11 +20,17 @@ const handleAccessTokenVerificationError = (err, res) => {
     res.status(401).send({ messages: error });
 };
 
+const handleBadRequest = (err, res) => {
+    const error = "Bad request";
+    res.status(400).send({ messages: error });
+};
+
 module.exports = (err, req, res, next) => {
     try {
         if (err.name === "JsonWebTokenError") return (err = handleAccessTokenVerificationError(err, res));
         if (err.name === "ValidationError") return (err = handleValidationError(err, res));
         if (err.code && err.code == 11000) return (err = handleDuplicateKeyError(err, res));
+        if (err.name === "CastError") return (err = handleBadRequest(err, res));
     } catch (err) {
         res.status(500).send({ messages: "An unknown error occurred." });
     }
