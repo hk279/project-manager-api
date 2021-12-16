@@ -1,12 +1,11 @@
-const db = require("../mongo");
 var express = require("express");
 const multer = require("multer");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const Workspace = require("../models/workspace");
-const adminCheck = require("../utils/adminCheck");
 const usersRouter = express.Router();
+const helper = require("../utils/helperFunctions");
 
 // Get all users in a workspace
 usersRouter.get("/workspace/:workspaceId", async (req, res, next) => {
@@ -45,6 +44,7 @@ usersRouter.post("/group:search", (req, res, next) => {
 usersRouter.get("/id/:userId", (req, res, next) => {
     User.findById(req.params.userId)
         .then((data) => {
+            helper.checkForEmptyResult(data, res);
             // Needs ._doc to work
             delete data._doc.password;
             res.send(data);

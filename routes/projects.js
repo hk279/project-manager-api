@@ -6,6 +6,7 @@ const Project = require("../models/project");
 const projectsRouter = express.Router();
 
 // Get all projects from a given workspace
+// TODO: Get only past or ongoing projects with a query param
 projectsRouter.get("/workspace/:workspaceId", (req, res, next) => {
     Project.find({ workspaceId: req.params.workspaceId })
         .then((data) => res.send(data))
@@ -15,7 +16,10 @@ projectsRouter.get("/workspace/:workspaceId", (req, res, next) => {
 // Get a project by id
 projectsRouter.get("/id/:projectId", (req, res, next) => {
     Project.findById(req.params.projectId)
-        .then((data) => res.send(data))
+        .then((data) => {
+            helper.checkForEmptyResult(data, res);
+            res.send(data);
+        })
         .catch((err) => next(err));
 });
 

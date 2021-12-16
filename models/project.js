@@ -16,6 +16,10 @@ const projectSchema = new mongoose.Schema({
             message: (props) => `${props.value} is not a valid project type`,
         },
     },
+    client: {
+        type: String,
+        required: false,
+    },
     description: {
         type: String,
         required: false,

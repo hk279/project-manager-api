@@ -40,8 +40,15 @@ const removeInvalidUsersFromTasks = (project) => {
     return { ...project, tasks: updatedTasks };
 };
 
+const checkForEmptyResult = (data, res) => {
+    if (data == null) {
+        res.status(404).send({ messages: "Resource not found" });
+    }
+};
+
 module.exports = {
     sortTasksByStatus,
     removeUserFromProject,
     removeInvalidUsersFromTasks,
+    checkForEmptyResult,
 };
