@@ -111,10 +111,8 @@ usersRouter.post("/upload-avatar/:userId", upload.single("image"), async (req, r
         const user = await User.findById(req.params.userId);
         existingAvatarFileKey = user.avatar.fileKey;
         existingAvatarFileName = user.avatar.fileName;
-    } catch (error) {
-        console.log("Checking existing avatar image data failed");
-        console.log(error);
-        next(error);
+    } catch (err) {
+        next(err);
     }
 
     // Add info of the file to the user in DB.
@@ -123,8 +121,6 @@ usersRouter.post("/upload-avatar/:userId", upload.single("image"), async (req, r
             $set: { avatar: { fileKey: req.file.filename, fileName: req.file.originalname } },
         });
     } catch (error) {
-        console.log("Adding new avatar to user document failed");
-        console.log(error);
         next(error);
     }
 
@@ -140,13 +136,9 @@ usersRouter.post("/upload-avatar/:userId", upload.single("image"), async (req, r
                 $set: { avatar: { fileKey: existingAvatarFileKey, fileName: existingAvatarFileName } },
             });
         } catch (error) {
-            console.log("Uploading image to S3 failed. New avatar image DB data rollback failed");
-            console.log(error);
             next(error);
         }
 
-        console.log("Uploading image to S3 failed");
-        console.log(error);
         next(error);
     }
 
@@ -156,8 +148,6 @@ usersRouter.post("/upload-avatar/:userId", upload.single("image"), async (req, r
         }
         res.status(200).send({ fileKey: req.file.filename, fileName: req.file.originalname });
     } catch (error) {
-        console.log("Deleting previous avatar image from S3 failed");
-        console.log(error);
         next(error);
     }
 });

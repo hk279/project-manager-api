@@ -29,15 +29,17 @@ workspacesRouter.post("/", (req, res, next) => {
 });
 
 // Edit a workspace
-workspacesRouter.put("/:id", (req, res, next) => {
-    Workspace.findByIdAndUpdate(req.params.id, req.body)
+workspacesRouter.put("/:workspaceId", (req, res, next) => {
+    Workspace.findByIdAndUpdate(req.params.workspaceId, req.body)
         .then((data) => res.send(data))
         .catch((err) => next(err));
 });
 
 // Delete a workspace
-workspacesRouter.delete("/:id", (req, res, next) => {
-    // TODO
+workspacesRouter.delete("/:workspaceId", (req, res, next) => {
+    Workspace.findByIdAndDelete(req.params.workspaceId)
+        .then(() => res.status(204).end())
+        .catch((err) => next(err));
 });
 
 module.exports = workspacesRouter;

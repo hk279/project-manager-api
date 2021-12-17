@@ -15,6 +15,7 @@ const uploadFile = (file) => {
         Bucket: process.env.AWS_BUCKET_NAME,
         Body: fileStream,
         Key: file.filename,
+        ContentType: file.mimetype,
     };
 
     return s3.upload(uploadParams).promise();

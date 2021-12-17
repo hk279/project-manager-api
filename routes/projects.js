@@ -1,3 +1,4 @@
+const db = require("../mongo");
 const express = require("express");
 const multer = require("multer");
 
@@ -68,6 +69,7 @@ projectsRouter.get("/tags/:workspaceId", (req, res, next) => {
 });
 
 // Uploading file attachments to a project
+// TODO: Try to make as transaction to make sure S3 and database are in sync
 
 const fs = require("fs");
 const util = require("util");
@@ -75,32 +77,28 @@ const unlinkFile = util.promisify(fs.unlink);
 const upload = multer({ dest: "uploads/" });
 const { uploadFile, getFile, deleteFile } = require("../utils/s3");
 
-projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res) => {
-    // Add info of the file to the project in DB.
-    Project.findByIdAndUpdate(req.params.projectId, {
-        $push: { files: { fileKey: req.file.filename, fileName: req.file.originalname } },
-    }).catch(() => {
-        res.status(500).send({ messages: "Adding file to project document failed" });
-    });
-
+projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res, next) => {
     // Upload file to s3 bucket.
     uploadFile(req.file)
         .then((result) => {
+            // Delete file from local filesystem
             unlinkFile(req.file.path);
-            res.send({ filePath: `/projects/get-file/${result.Key}`, fileKey: result.Key });
-        })
-        .catch((err) => {
-            // If uploading to the bucket fails, roll back the DB update.
-            Project.findByIdAndUpdate(req.params.projectId, { $pull: { files: { fileKey: req.file.filename } } }).catch(
-                (err) => {
-                    console.log(err);
-                    res.status(500).send("Rollback failed");
-                }
-            );
 
-            console.log(err);
-            res.status(500).send("File upload failed");
-        });
+            // Add info of the file to the project in DB.
+            Project.findByIdAndUpdate(req.params.projectId, {
+                $push: {
+                    files: { fileKey: result.Key, fileName: req.file.originalname, fileLocation: result.Location },
+                },
+            })
+                .then(() =>
+                    res.send({
+                        fileKey: result.Key,
+                        fileLocation: result.Location,
+                    })
+                )
+                .catch(() => res.status(500).send({ messages: "Adding file to project document failed" }));
+        })
+        .catch((err) => next(err));
 });
 
 // Getting an attachment file from s3 bucket
@@ -110,17 +108,15 @@ projectsRouter.get("/get-file/:fileKey", (req, res) => {
 });
 
 // Delete an attachment file from  DB and s3 bucket
-projectsRouter.put("/:projectId/delete-file/:fileKey", (req, res, next) => {
-    deleteFile(req.params.fileKey)
+// TODO: Try to make as transaction to make sure S3 and database are in sync
+projectsRouter.post("/delete-file:search", (req, res) => {
+    deleteFile(req.body.fileKey)
         .then(() => {
-            Project.findByIdAndUpdate(req.params.projectId, { $pull: { files: { fileKey: req.params.fileKey } } })
+            Project.findByIdAndUpdate(req.body.projectId, { $pull: { files: { fileKey: req.body.fileKey } } })
                 .then(() => res.status(204).end())
-                .catch((err) => {
-                    console.log(err);
-                    res.status(500).end();
-                });
+                .catch(() => res.status(500).send({ messages: "Failed to delete file from database" }));
         })
-        .catch((err) => next(err));
+        .catch(() => res.status(500).send({ messages: "Failed to delete file" }));
 });
 
 // Add comment
