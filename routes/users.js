@@ -103,53 +103,57 @@ const upload = multer({ dest: "uploads/" });
 const { uploadFile, getFile, deleteFile } = require("../utils/s3");
 
 usersRouter.post("/upload-avatar/:userId", upload.single("image"), async (req, res, next) => {
+    // Variables used to store previous avatar in case of an error
     let existingAvatarFileKey;
     let existingAvatarFileName;
+    let existingAvatarFileLocation;
 
-    // Get existing avatar image data
+    // Get existing avatar image info
     try {
         const user = await User.findById(req.params.userId);
         existingAvatarFileKey = user.avatar.fileKey;
         existingAvatarFileName = user.avatar.fileName;
+        existingAvatarFileLocation = user.avatar.fileLocation;
     } catch (err) {
-        next(err);
-    }
-
-    // Add info of the file to the user in DB.
-    try {
-        await User.findByIdAndUpdate(req.params.userId, {
-            $set: { avatar: { fileKey: req.file.filename, fileName: req.file.originalname } },
-        });
-    } catch (error) {
-        next(error);
+        res.status(500).send({ messages: "Failed to et existing avatar image info" });
     }
 
     let uploadData;
-    // Upload file to s3 bucket.
+    let uploadedFileInfo;
     try {
+        // Upload file to s3 bucket.
         uploadData = await uploadFile(req.file);
+
+        // Remove file from local filesystem
         await unlinkFile(req.file.path);
-    } catch (error) {
-        // If uploading to the bucket fails, rollback the DB update.
+
+        uploadedFileInfo = {
+            fileKey: uploadData.Key,
+            fileName: req.file.originalname,
+            fileLocation: uploadData.Location,
+        };
+
+        // Update avatar to database
         try {
-            await Project.findByIdAndUpdate(req.params.projectId, {
-                $set: { avatar: { fileKey: existingAvatarFileKey, fileName: existingAvatarFileName } },
+            await User.findByIdAndUpdate(req.params.userId, {
+                $set: {
+                    avatar: { ...uploadedFileInfo },
+                },
             });
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            console.log(err);
+            res.status(500).send({ messages: "Adding avatar info to database failed" });
         }
-
-        next(error);
-    }
-
-    try {
-        if (existingAvatarFileKey !== "") {
-            await deleteFile(existingAvatarFileKey);
-        }
-        res.status(200).send({ fileKey: req.file.filename, fileName: req.file.originalname });
     } catch (error) {
-        next(error);
+        res.status(500).send({ messages: "File upload failed" });
     }
+
+    // Delete old avatar file
+    if (existingAvatarFileKey !== "") {
+        await deleteFile(existingAvatarFileKey);
+    }
+
+    res.status(200).send(uploadedFileInfo);
 });
 
 // Getting the avatar image from s3 bucket
@@ -166,14 +170,13 @@ usersRouter.get("/get-avatar/:fileKey", (req, res) => {
 usersRouter.put("/:userId/delete-avatar", (req, res) => {
     deleteFile(req.params.fileKey)
         .then(() => {
-            Project.findByIdAndUpdate(req.params.projectId, { $set: { avatar: { fileKey: "", fileName: "" } } })
+            User.findByIdAndUpdate(req.params.userId, {
+                $set: { avatar: { fileKey: "", fileName: "", fileLocation: "" } },
+            })
                 .then(() => res.status(204).end())
-                .catch((err) => {
-                    console.log(err);
-                    res.status(500).send({ messages: "Removing avatar image from DB failed" });
-                });
+                .catch(() => res.status(500).send({ messages: "Removing avatar image info from DB failed" }));
         })
-        .catch(() => res.status(500).send({ messages: "Deleting avatar image from file storage failed" }));
+        .catch(() => res.status(500).send({ messages: "Deleting avatar image failed" }));
 });
 
 module.exports = usersRouter;

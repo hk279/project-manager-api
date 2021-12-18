@@ -1,4 +1,3 @@
-const db = require("../mongo");
 const express = require("express");
 const multer = require("multer");
 
@@ -96,9 +95,9 @@ projectsRouter.post("/:projectId/upload-file", upload.single("file"), (req, res,
                         fileLocation: result.Location,
                     })
                 )
-                .catch(() => res.status(500).send({ messages: "Adding file to project document failed" }));
+                .catch(() => res.status(500).send({ messages: "Adding file info to database failed" }));
         })
-        .catch((err) => next(err));
+        .catch(() => res.status(500).send({ messages: "File upload failed" }));
 });
 
 // Getting an attachment file from s3 bucket
