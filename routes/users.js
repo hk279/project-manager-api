@@ -26,16 +26,11 @@ usersRouter.get("/workspace/:workspaceId", async (req, res, next) => {
     }
 });
 
-// Get users for IDs given in the request body
+// Get users for a list of IDs given in the request body
 usersRouter.post("/group:search", (req, res, next) => {
     const userIdsArray = req.body.group;
-    const allRequests = [];
 
-    userIdsArray.forEach((id) => {
-        allRequests.push(User.findById(id));
-    });
-
-    Promise.all(allRequests)
+    User.find({ _id: { $in: userIdsArray } })
         .then((data) => res.send(data))
         .catch((err) => next(err));
 });

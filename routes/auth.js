@@ -23,8 +23,8 @@ authRouter.post("/login", async (req, res, next) => {
             lastName: user.lastName,
             email: user.email,
             avatar: user.avatar,
-            activeWorkspace: user.defaultWorkspace,
-            defaultWorkspace: user.defaultWorkspace,
+            activeWorkspace: user.defaultWorkspace ?? "",
+            defaultWorkspace: user.defaultWorkspace ?? "",
             skills: user.skills,
         };
         const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
@@ -41,7 +41,14 @@ authRouter.post("/signup", async (req, res, next) => {
         // Hash password with 10 salt rounds
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-        let userDetails = { ...req.body, password: hashedPassword };
+        let userDetails = {
+            ...req.body,
+            password: hashedPassword,
+            avatar: { fileKey: "", fileName: "", fileLocation: "" },
+            defaultWorkspace: "",
+        };
+        delete userDetails["repeatPassword"];
+
         const user = await User.create(userDetails);
 
         res.status(201).send(user);

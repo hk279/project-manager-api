@@ -1,6 +1,9 @@
+const db = require("../mongo");
 var express = require("express");
 
 const Workspace = require("../models/workspace");
+const Project = require("../models/project");
+const User = require("../models/user");
 const workspacesRouter = express.Router();
 
 // Get a workspace by id
@@ -36,10 +39,26 @@ workspacesRouter.put("/:workspaceId", (req, res, next) => {
 });
 
 // Delete a workspace
-workspacesRouter.delete("/:workspaceId", (req, res, next) => {
-    Workspace.findByIdAndDelete(req.params.workspaceId)
-        .then(() => res.status(204).end())
-        .catch((err) => next(err));
+workspacesRouter.delete("/:workspaceId", async (req, res, next) => {
+    const session = await db.startSession();
+    try {
+        // Start session
+        await session.startTransaction();
+
+        // Transaction operations
+        await Workspace.findByIdAndDelete(req.params.workspaceId).session(session);
+        await Project.deleteMany({ workspace: req.params.workspaceId }).session(session);
+        await User.updateMany({ defaultWorkspace: req.params.workspaceId }, { defaultWorkspace: "" }).session(session);
+
+        // Finish transaction
+        await session.commitTransaction();
+        session.endSession();
+        return res.send();
+    } catch (err) {
+        await session.abortTransaction();
+        session.endSession();
+        next(err);
+    }
 });
 
 module.exports = workspacesRouter;
