@@ -9,12 +9,8 @@ const workspacesRouter = express.Router();
 // Get a workspace by id
 workspacesRouter.get("/:workspaceId", (req, res, next) => {
     Workspace.findById(req.params.workspaceId)
-        .then((data) => {
-            res.send(data);
-        })
-        .catch((err) => {
-            next(err);
-        });
+        .then((data) => res.send(data))
+        .catch((err) => next(err));
 });
 
 // Get all workspaces by user
