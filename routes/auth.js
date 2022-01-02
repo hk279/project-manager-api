@@ -3,6 +3,7 @@ require("dotenv").config();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const Workspace = require("../models/workspace");
 const authRouter = express.Router();
 
 // Login
@@ -13,8 +14,21 @@ authRouter.post("/login", async (req, res, next) => {
 
         // Check password
         const passwordCorrect = user === null ? false : await bcrypt.compare(req.body.password, user.password);
-
         if (!passwordCorrect) return res.status(401).json({ messages: "Invalid email or password" });
+
+        // Get user workspaces
+        const workspaces = await Workspace.find({ "members.userId": user.id });
+
+        console.log(user.defaultWorkspace);
+
+        // If no default set, try to set one of the other workspaces as active on login
+        let activeWorkspace;
+        if (user.defaultWorkspace === "" || user.defaultWorkspace === null) {
+            if (workspaces[0]?._id) activeWorkspace = workspaces[0]._id;
+            else activeWorkspace = "";
+        } else {
+            activeWorkspace = user.defaultWorkspace;
+        }
 
         // Create access token
         let userObject = {
@@ -23,8 +37,8 @@ authRouter.post("/login", async (req, res, next) => {
             lastName: user.lastName,
             email: user.email,
             avatar: user.avatar,
-            activeWorkspace: user.defaultWorkspace ?? "",
-            defaultWorkspace: user.defaultWorkspace ?? "",
+            activeWorkspace,
+            defaultWorkspace: user.defaultWorkspace,
             skills: user.skills,
         };
         const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: 60 * 60 });

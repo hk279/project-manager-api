@@ -25,8 +25,8 @@ const projectSchema = new mongoose.Schema({
         required: false,
     },
     deadline: {
-        type: String,
-        required: false,
+        type: Date,
+        default: null,
     },
     workspaceId: {
         type: String,

@@ -57,4 +57,8 @@ workspacesRouter.delete("/:workspaceId", async (req, res, next) => {
     }
 });
 
+// Join a workspace with an invite link
+
+// Generate a new invite link id
+
 module.exports = workspacesRouter;

@@ -23,6 +23,10 @@ const workspaceSchema = new mongoose.Schema({
         type: Object,
         required: true,
     },
+    inviteLinkId: {
+        type: String,
+        required: true,
+    },
 });
 
 // Format the returned data. Remove _id-object and return a string id instead. Also remove the MongoDB version.

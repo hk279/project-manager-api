@@ -6,9 +6,20 @@ const Project = require("../models/project");
 const projectsRouter = express.Router();
 
 // Get all projects from a given workspace
-// TODO: Get only past or ongoing projects with a query param
 projectsRouter.get("/workspace/:workspaceId", (req, res, next) => {
-    Project.find({ workspaceId: req.params.workspaceId })
+    let mongooseFindParameters = { workspaceId: req.params.workspaceId };
+
+    // Only past projects
+    if (req.query.past === "1" && req.query.current === "0") {
+        mongooseFindParameters.$or = [{ deadline: { $lte: new Date() } }];
+        // Only current projects (includes projects with no deadline)
+    } else if (req.query.past === "0" && req.query.current === "1") {
+        mongooseFindParameters.$or = [{ deadline: { $gte: new Date() } }, { deadline: null }];
+    }
+
+    // Insert parameters into the query and sort by deadline.
+    Project.find(mongooseFindParameters)
+        .sort({ deadline: "asc" })
         .then((data) => res.send(data))
         .catch((err) => next(err));
 });

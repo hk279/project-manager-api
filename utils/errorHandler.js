@@ -21,6 +21,7 @@ const handleAccessTokenVerificationError = (err, res) => {
 };
 
 const handleCastError = (err, res) => {
+    console.log(err);
     const error = "Resource not found";
     res.status(404).send({ messages: error });
 };
