@@ -19,8 +19,6 @@ authRouter.post("/login", async (req, res, next) => {
         // Get user workspaces
         const workspaces = await Workspace.find({ "members.userId": user.id });
 
-        console.log(user.defaultWorkspace);
-
         // If no default set, try to set one of the other workspaces as active on login
         let activeWorkspace;
         if (user.defaultWorkspace === "" || user.defaultWorkspace === null) {
