@@ -1,5 +1,6 @@
 const db = require("../mongo");
 var express = require("express");
+const { v4: uuidv4 } = require("uuid");
 
 const Workspace = require("../models/workspace");
 const Project = require("../models/project");
@@ -22,7 +23,7 @@ workspacesRouter.get("/user/:userId", (req, res, next) => {
 
 // Create a workspace
 workspacesRouter.post("/", (req, res, next) => {
-    Workspace.create(req.body)
+    Workspace.create({ ...req.body, inviteLinkId: uuidv4() })
         .then((data) => res.status(201).send(data))
         .catch((err) => next(err));
 });
