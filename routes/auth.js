@@ -28,8 +28,7 @@ authRouter.post("/login", async (req, res, next) => {
             activeWorkspace = user.defaultWorkspace;
         }
 
-        // Create access token
-        let userObject = {
+        const userObject = {
             id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
@@ -39,9 +38,11 @@ authRouter.post("/login", async (req, res, next) => {
             defaultWorkspace: user.defaultWorkspace,
             skills: user.skills,
         };
-        const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
 
-        res.send({ ...userObject, accessToken });
+        const accessToken = jwt.sign(userObject, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const refreshToken = jwt.sign(userObject, process.env.REFRESH_SECRET, { expiresIn: "24h" }); // Not used yet
+
+        res.send({ ...userObject, accessToken, refreshToken });
     } catch (err) {
         next(err);
     }
@@ -68,5 +69,32 @@ authRouter.post("/signup", async (req, res, next) => {
         next(err);
     }
 });
+
+// Refresh access token
+// authRouter.post("/refresh-token", (req, res) => {
+//     // Verify refresh token
+//     jwt.verify(req.body.refreshToken, process.env.REFRESH_SECRET, (err, payload) => {
+//         console.log("valid refresh token");
+
+//         if (!err && payload.id === req.body.id && payload.email === req.body.email) {
+//             const newUserObject = {
+//                 id: req.body.id,
+//                 firstName: req.body.firstName,
+//                 lastName: req.body.lastName,
+//                 email: req.body.email,
+//                 avatar: req.body.avatar,
+//                 activeWorkspace: req.body.activeWorkspace,
+//                 defaultWorkspace: req.body.defaultWorkspace,
+//                 skills: req.body.skills,
+//             };
+
+//             const newAccessToken = jwt.sign(newUserObject, process.env.JWT_SECRET, { expiresIn: 10 });
+
+//             return res.status(200).send({ newAccessToken });
+//         } else {
+//             return res.status(401).send({ messages: "Invalid refresh token" });
+//         }
+//     });
+// });
 
 module.exports = authRouter;
